@@ -1,0 +1,11 @@
+{{ define "content" }}
+    <h2>all gifs</h2>
+
+    <a href="/">take me home</a><br><br>
+
+    <hr>
+
+    {{ range $hash, $gif := .gifs }}
+        <img src="/gif/{{ $hash }}">
+    {{ end }}
+{{ end }}

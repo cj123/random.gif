@@ -14,6 +14,8 @@ type gifURL string
 type handler struct {
 	store gifStore
 	expirables *gotimeout.Map
+
+	lastGifID string
 }
 
 func main() {
@@ -48,7 +50,9 @@ func main() {
 }
 
 func (h *handler) indexHandler(w http.ResponseWriter, r *http.Request) {
-	err := renderTemplate(w, "index.tmpl", "layout.tmpl", nil)
+	err := renderTemplate(w, "index.tmpl", "layout.tmpl", map[string]interface{}{
+		"id": h.lastGifID,
+	})
 
 	if err != nil {
 		log.Fatal(err)
@@ -76,7 +80,7 @@ func (h *handler) submitHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.store.Store(b, gURL)
+	h.lastGifID, err = h.store.Store(b, gURL)
 
 	if err == gifAlreadyExistsError {
 		http.Error(w, "we've already got that gif, thanks!", http.StatusBadRequest)

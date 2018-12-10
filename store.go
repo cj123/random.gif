@@ -21,7 +21,7 @@ var (
 
 type gifStore interface {
 	Init() error
-	Store([]byte, gifURL) error
+	Store([]byte, gifURL) (string, error)
 	Get(string) ([]byte, error)
 	Delete(gifURL) error
 	All() map[string]*gif
@@ -99,15 +99,17 @@ func (d *diskStore) readIndex() error {
 	return json.Unmarshal(b, &d.index)
 }
 
-func (d *diskStore) Store(b []byte, gif gifURL) error {
+func (d *diskStore) Store(b []byte, gif gifURL) (string, error) {
+	id := d.makeIdentifier(gif)
+
 	if _, ok := d.index[d.makeIdentifier(gif)]; ok {
-		return gifAlreadyExistsError
+		return id, gifAlreadyExistsError
 	}
 
 	u, err := url.Parse(string(gif))
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	saveDir := path.Join(d.loc, u.Host, u.Path)
@@ -115,17 +117,17 @@ func (d *diskStore) Store(b []byte, gif gifURL) error {
 	err = os.MkdirAll(path.Dir(saveDir), os.ModePerm)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	err = ioutil.WriteFile(saveDir, b, 0644)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// update index without save location
-	return d.appendToIndex(gif, path.Join(u.Host, u.Path))
+	return id, d.appendToIndex(gif, path.Join(u.Host, u.Path))
 }
 
 func (d *diskStore) Get(hash string) ([]byte, error) {

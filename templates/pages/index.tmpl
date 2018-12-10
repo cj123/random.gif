@@ -15,6 +15,11 @@
 
     <br><br>
 
+   {{ with .id }}
+   <img src="/gif/{{ . }}">
+   <p>gif submitted successfully! have a nice day.</p>
+   {{ end }}
+
     <hr>
 
     <h3>q/a</h3>
